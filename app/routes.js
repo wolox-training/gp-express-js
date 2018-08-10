@@ -1,7 +1,6 @@
-// const controller = require('./controllers/controller');
+const userController = require('./controllers/user');
+const signUpValidations = require('./middlewares/signUpValidations');
 
 exports.init = app => {
-  // app.get('/endpoint/get/path', [], controller.methodGET);
-  // app.put('/endpoint/put/path', [], controller.methodPUT);
-  // app.post('/endpoint/post/path', [], controller.methodPOST);
+  app.post('/users', [signUpValidations.validate], userController.signUp);
 };
