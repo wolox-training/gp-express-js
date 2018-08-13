@@ -1,18 +1,20 @@
-const { check } = require('express-validator/check');
-const User = require('../models').User;
+const User = require('../models').User,
+  error = require('../services/errors');
 
 exports.validate = (req, res, next) => {
+  const errors = [];
   const isWoloxValidEmail = req.body.email.endsWith('@wolox.com.ar');
-  const isPasswordValid = req.body.password.length <= 8;
-  const email = req.body.email;
-  User.findOne({ email }).then(oldUser => {
-    if (oldUser && oldUser.email === req.body.email) {
-      res.status(401).send('ES EL MISMO MAIL!!!');
-    }
-    if (isWoloxValidEmail && isPasswordValid) {
+  const isPasswordValid = req.body.password.length >= 8;
+  if (!isWoloxValidEmail) errors.push(error.invalidMail.message);
+  if (!isPasswordValid) errors.push(error.invalidPassword.message);
+  User.findOne({
+    where: { email: req.body.email }
+  }).then(oldUser => {
+    if (!oldUser && isWoloxValidEmail && isPasswordValid) {
       next();
     } else {
-      res.status(401).send('invalid params');
+      if (oldUser) errors.push(error.sameMail.message);
+      res.status(401).send(errors);
     }
   });
 };
