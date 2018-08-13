@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Users', {
@@ -15,6 +16,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       email: {
+        unique: true,
         type: Sequelize.STRING
       },
       password: {
