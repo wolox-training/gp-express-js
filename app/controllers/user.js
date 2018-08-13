@@ -1,5 +1,6 @@
-const bcrypt = require('bcryptjs');
-const User = require('../models').User;
+const bcrypt = require('bcryptjs'),
+  User = require('../models').User,
+  logger = require('../logger');
 
 exports.signUp = (req, res, next) => {
   const user = req.body
@@ -13,18 +14,19 @@ exports.signUp = (req, res, next) => {
   bcrypt
     .hash(user.password, 10)
     .then(hash => {
+      logger.info('Starting user creation');
       user.password = hash;
       User.create(user)
         .then(u => {
-          console.log(user.firstName);
+          logger.info(`User ${user.firstName} was created successfully`);
           res.status(200);
           res.end();
         })
         .catch(err => {
-          console.log(err);
+          logger.error('Database error, the user could not be created');
         });
     })
     .catch(err => {
-      console.log(err);
+      res.status(500).send(err);
     });
 };
