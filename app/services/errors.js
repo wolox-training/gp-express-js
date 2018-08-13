@@ -12,3 +12,8 @@ exports.invalidPassword = {
   status: 401,
   message: 'Invalid Password'
 };
+
+exports.nonExistentMail = {
+  status: 401,
+  message: 'Non existent mail'
+};
