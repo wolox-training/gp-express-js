@@ -1,4 +1,6 @@
 const User = require('../models').User,
+  jwt = require('jsonwebtoken'),
+  config = require('../../config'),
   error = require('../services/errors');
 
 const baseValidation = (email, password) => {
@@ -39,10 +41,9 @@ exports.validateLogin = (req, res, next) => {
 };
 
 exports.verifyAuthentication = (req, res, next) => {
-  if (req.body.token){
-    jwt.verify(req.body.token, config.common.session.secret)
-    .then(() => next())
-    .catch(() => res.status(401).send('Incorrect token'));
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.replace('Bearer ', '');
+    jwt.verify(token, config.common.session.secret) ? next() : res.status(401).send('Incorrect token');
   } else {
     res.status(401).send('You are not logged in');
   }

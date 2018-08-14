@@ -15,13 +15,14 @@ exports.signUp = (req, res, next) => {
     : {};
   logger.info('Starting user creation');
   User.create(user)
-    .then(u => {
+    .then(() => {
       logger.info(`User ${user.firstName} was created successfully`);
       res.status(200);
       res.end();
     })
     .catch(err => {
       logger.error('Database error, the user could not be created');
+      res.status(500).send(err);
     });
 };
 
@@ -62,5 +63,18 @@ exports.signIn = (req, res, next) => {
 };
 
 exports.list = (req, res, next) => {
-  
+  User.findAll({
+    attributes: ['firstName', 'lastName', 'email'],
+    offset: req.query.offset,
+    limit: req.query.limit
+  }) // ej:/users?offset=0&limit=10
+    .then(users => {
+      res.status(200).send({ users });
+      res.end();
+    })
+    .catch(() => {
+      const databaseError = 'Database error';
+      logger.error(databaseError);
+      res.status(401).send(databaseError);
+    });
 };
