@@ -60,3 +60,7 @@ exports.signIn = (req, res, next) => {
       res.status(401).send(databaseError);
     });
 };
+
+exports.list = (req, res, next) => {
+  
+};
