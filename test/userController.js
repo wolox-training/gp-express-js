@@ -3,21 +3,21 @@ const chai = require('chai'),
   server = require('./../app'),
   should = chai.should();
 
+const user = {
+  firstName: 'FirstName',
+  lastName: 'LastName',
+  email: 'test@wolox.com.ar',
+  password: 'passwordTest1'
+};
+
 describe('user', () => {
   describe('/user POST', () => {
     it('Should successfully POST given an user', done => {
-      // Given
-      const newUser = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       // When
       chai
         .request(server)
         .post('/users')
-        .send(newUser)
+        .send(user)
         .then(res => {
           // Expect
           res.should.have.status(200);
@@ -47,23 +47,16 @@ describe('user', () => {
         });
     });
     it("Should throw an error when sending to POST when the user's email already exists", done => {
-      // Given
-      const anUserWithAnExistingEmail = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       // When
       chai
         .request(server)
         .post('/users')
-        .send(anUserWithAnExistingEmail)
+        .send(user)
         .then(() => {
           chai
             .request(server)
             .post('/users')
-            .send(anUserWithAnExistingEmail)
+            .send(user)
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -123,12 +116,6 @@ describe('user', () => {
   describe('/users/sessions POST', () => {
     it('Should successfully POST login', done => {
       // Given
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       const login = {
         email: 'test@wolox.com.ar',
         password: 'passwordTest1'
@@ -154,12 +141,6 @@ describe('user', () => {
     });
     it('Should throw an error when sending to POST a login with empty fields', done => {
       // Given
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       const emptyLogin = {};
       // When
       chai
@@ -186,12 +167,6 @@ describe('user', () => {
     });
     it('Should throw an error when sending to POST a login with an incorect password', done => {
       // Given
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       const loginWithAnIncorrectPassword = {
         email: 'test@wolox.com.ar',
         password: 'incorrectPassword'
@@ -216,12 +191,6 @@ describe('user', () => {
     });
     it('Should throw an error when sending to POST a login with an invalid password', done => {
       // Given
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       const loginWithAnInvalidPassword = {
         email: 'test@wolox.com.ar',
         password: 'invalid'
@@ -249,12 +218,6 @@ describe('user', () => {
     });
     it('Should throw an error when sending to POST a login with an incorect email', done => {
       // Given
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       const loginWithAnIncorrectMail = {
         email: 'incorrect@wolox.com.ar',
         password: 'passwordTest1'
@@ -282,12 +245,6 @@ describe('user', () => {
     });
     it('Should throw an error when sending to POST a login with an invalid email', done => {
       // Given
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       const loginWithAnInvalidMail = {
         email: 'test@invalid.com.ar',
         password: 'passwordTest1'
