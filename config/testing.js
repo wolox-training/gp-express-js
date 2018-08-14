@@ -11,7 +11,7 @@ exports.config = {
       password: process.env.DB_PASSWORD
     },
     session: {
-      secret: 'some-super-secret'
+      secret: 'jwtKey'
     }
   }
 };
