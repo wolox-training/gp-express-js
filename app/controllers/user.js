@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs'),
   User = require('../models').User,
+  jwt = require('jsonwebtoken'),
+  config = require('../../config'),
   logger = require('../logger');
 
 exports.signUp = (req, res, next) => {
@@ -11,22 +13,50 @@ exports.signUp = (req, res, next) => {
         email: req.body.email
       }
     : {};
-  bcrypt
-    .hash(user.password, 10)
-    .then(hash => {
-      logger.info('Starting user creation');
-      user.password = hash;
-      User.create(user)
-        .then(u => {
-          logger.info(`User ${user.firstName} was created successfully`);
-          res.status(200);
-          res.end();
-        })
-        .catch(err => {
-          logger.error('Database error, the user could not be created');
-        });
+  logger.info('Starting user creation');
+  User.create(user)
+    .then(u => {
+      logger.info(`User ${user.firstName} was created successfully`);
+      res.status(200);
+      res.end();
     })
     .catch(err => {
-      res.status(500).send(err);
+      logger.error('Database error, the user could not be created');
+    });
+};
+
+exports.signIn = (req, res, next) => {
+  const login = req.body
+    ? {
+        email: req.body.email,
+        password: req.body.password
+      }
+    : {};
+  User.findOne({
+    where: { email: login.email }
+  })
+    .then(userLogged => {
+      bcrypt.compare(login.password, userLogged.password).then(samePassword => {
+        if (samePassword) {
+          logger.info(`${login.email} logged in correctly`);
+          const token = jwt.sign({ email: login.email }, config.common.session.secret);
+          res.status(200).send({
+            user: {
+              firstName: userLogged.firstName,
+              lastName: userLogged.lastName,
+              email: login.email
+            },
+            token
+          });
+          res.end();
+        } else {
+          res.status(401).send('Incorrect password');
+        }
+      });
+    })
+    .catch(() => {
+      const databaseError = 'Database error, wrong user';
+      logger.error(databaseError);
+      res.status(401).send(databaseError);
     });
 };
