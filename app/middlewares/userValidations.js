@@ -37,3 +37,13 @@ exports.validateLogin = (req, res, next) => {
     }
   });
 };
+
+exports.verifyAuthentication = (req, res, next) => {
+  if (req.body.token){
+    jwt.verify(req.body.token, config.common.session.secret)
+    .then(() => next())
+    .catch(() => res.status(401).send('Incorrect token'));
+  } else {
+    res.status(401).send('You are not logged in');
+  }
+};
