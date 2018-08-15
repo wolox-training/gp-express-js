@@ -80,4 +80,65 @@ exports.list = (req, res, next) => {
     });
 };
 
-exports.signUpAdmin = (req, res, next) => {};
+const createAdmin = (res, user) => {
+  logger.info('Starting user admin creation');
+  const userAdmin = user
+    ? {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        password: user.password,
+        email: user.email,
+        admin: true
+      }
+    : {};
+  User.create(userAdmin)
+    .then(() => {
+      logger.info(`User ${userAdmin.firstName} was created successfully`);
+      res.status(200);
+      res.end();
+    })
+    .catch(err => {
+      logger.error('Database error, the user could not be created');
+      res.status(500).send(err);
+    });
+};
+
+const updateUserAdmin = (res, user) => {
+  logger.info('Starting user admin updating');
+  if (user.admin) {
+    const youAreAlreadyAdministratorMessage = 'You are already administrator';
+    logger.info(youAreAlreadyAdministratorMessage);
+    res.status(200).send(youAreAlreadyAdministratorMessage);
+    res.end();
+  } else {
+    user.admin = true;
+    User.update(user)
+      .then(() => {
+        logger.info(`User ${user.firstName} was updated successfully`);
+        res.status(200);
+        res.end();
+      })
+      .catch(err => {
+        logger.error('Database error, the user could not be created');
+        res.status(500).send(err);
+      });
+  }
+};
+
+exports.signUpAdmin = (req, res, next) => {
+  logger.info('Starting user admin updating');
+  User.findOne({
+    where: { email: req.body.email }
+  })
+    .then(userLogged => {
+      if (userLogged) {
+        updateUserAdmin(res, userLogged);
+      } else {
+        createAdmin(res, req.body);
+      }
+    })
+    .catch(err => {
+      logger.error('Database error');
+      res.status(500).send(err);
+    });
+};
