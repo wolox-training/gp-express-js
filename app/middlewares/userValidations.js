@@ -1,4 +1,6 @@
 const User = require('../models').User,
+  jwt = require('jsonwebtoken'),
+  config = require('../../config'),
   error = require('../services/errors');
 
 const baseValidation = (email, password) => {
@@ -36,4 +38,22 @@ exports.validateLogin = (req, res, next) => {
       res.status(401).send(validations.errors);
     }
   });
+};
+
+exports.verifyAuthentication = (req, res, next) => {
+  if (req.headers.authorization) {
+    const tokenString = req.headers.authorization.replace('Bearer ', '');
+    const token = jwt.decode(tokenString, config.common.session.secret);
+    User.findOne({
+      where: { email: token.email }
+    }).then(anUser => {
+      if (anUser && token) {
+        next();
+      } else {
+        res.status(401).send('Incorrect token');
+      }
+    });
+  } else {
+    res.status(401).send('You are not logged in');
+  }
 };

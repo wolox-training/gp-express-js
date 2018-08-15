@@ -1,7 +1,8 @@
 const userController = require('./controllers/user'),
-  signUpValidations = require('./middlewares/userValidations');
+  userValidations = require('./middlewares/userValidations');
 
 exports.init = app => {
-  app.post('/users', [signUpValidations.validate], userController.signUp);
-  app.post('/users/sessions', [signUpValidations.validateLogin], userController.signIn);
+  app.post('/users', [userValidations.validate], userController.signUp);
+  app.post('/users/sessions', [userValidations.validateLogin], userController.signIn);
+  app.get('/users', userValidations.verifyAuthentication, userController.list);
 };
