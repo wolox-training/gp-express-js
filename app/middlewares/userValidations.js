@@ -57,3 +57,12 @@ exports.verifyAuthentication = (req, res, next) => {
     res.status(401).send('You are not logged in');
   }
 };
+
+exports.checkAdmin = (req, res, next) => {
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.replace('Bearer ', '');
+    jwt.verify(token, config.common.session.secret) ? next() : res.status(401).send('Incorrect token');
+  } else {
+    res.status(401).send('You are not logged in');
+  }
+};

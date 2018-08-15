@@ -79,3 +79,7 @@ exports.list = (req, res, next) => {
       res.status(401).send(databaseError);
     });
 };
+
+exports.signUpAdmin = (req, res, next) => {
+  
+};

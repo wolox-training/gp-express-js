@@ -5,4 +5,5 @@ exports.init = app => {
   app.post('/users', [userValidations.validate], userController.signUp);
   app.post('/users/sessions', [userValidations.validateLogin], userController.signIn);
   app.get('/users', userValidations.verifyAuthentication, userController.list);
+  app.post('/admin/users', [userValidations.checkAdmin], userController.signUpAdmin);
 };
