@@ -80,6 +80,4 @@ exports.list = (req, res, next) => {
     });
 };
 
-exports.signUpAdmin = (req, res, next) => {
-  
-};
+exports.signUpAdmin = (req, res, next) => {};
