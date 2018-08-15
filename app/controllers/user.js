@@ -10,7 +10,8 @@ exports.signUp = (req, res, next) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         password: req.body.password,
-        email: req.body.email
+        email: req.body.email,
+        admin: false
       }
     : {};
   logger.info('Starting user creation');

@@ -8,7 +8,8 @@ const user = {
   firstName: 'FirstName',
   lastName: 'LastName',
   email: 'test@wolox.com.ar',
-  password: 'passwordTest1'
+  password: 'passwordTest1',
+  admin: false
 };
 
 describe('user', () => {
@@ -75,7 +76,8 @@ describe('user', () => {
         firstName: 'FirstName',
         lastName: 'LastName',
         email: 'test@wolox.com.ar',
-        password: 'invalid'
+        password: 'invalid',
+        admin: false
       };
       // When
       chai
@@ -97,7 +99,8 @@ describe('user', () => {
         firstName: 'FirstName',
         lastName: 'LastName',
         email: 'test@invalid.com.ar',
-        password: 'passwordTest1'
+        password: 'passwordTest1',
+        admin: false
       };
       // When
       chai
@@ -274,7 +277,8 @@ describe('user', () => {
         firstName: 'FirstName2',
         lastName: 'LastName2',
         email: 'test2@wolox.com.ar',
-        password: 'passwordTest2'
+        password: 'passwordTest2',
+        admin: false
       };
       beforeEach(() => {
         User.create(otherUser);
