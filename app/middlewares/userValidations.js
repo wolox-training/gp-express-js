@@ -42,8 +42,17 @@ exports.validateLogin = (req, res, next) => {
 
 exports.verifyAuthentication = (req, res, next) => {
   if (req.headers.authorization) {
-    const token = req.headers.authorization.replace('Bearer ', '');
-    jwt.verify(token, config.common.session.secret) ? next() : res.status(401).send('Incorrect token');
+    const tokenString = req.headers.authorization.replace('Bearer ', '');
+    const token = jwt.decode(tokenString, config.common.session.secret);
+    User.findOne({
+      where: { email: token.email }
+    }).then(anUser => {
+      if (anUser && token) {
+        next();
+      } else {
+        res.status(401).send('Incorrect token');
+      }
+    });
   } else {
     res.status(401).send('You are not logged in');
   }

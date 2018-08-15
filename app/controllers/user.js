@@ -67,7 +67,7 @@ exports.list = (req, res, next) => {
     attributes: ['firstName', 'lastName', 'email'],
     offset: req.query.offset,
     limit: req.query.limit
-  }) // ej:/users?offset=0&limit=10
+  })
     .then(users => {
       res.status(200).send({ users });
       res.end();
