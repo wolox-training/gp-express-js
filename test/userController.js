@@ -540,18 +540,17 @@ describe('user', () => {
       password: 'passwordAdmin1',
       admin: true
     };
+    const newAdmin = {
+      firstName: 'newAdmin',
+      lastName: 'newAdmin',
+      email: 'newAdmin@wolox.com.ar',
+      password: 'passwordNewAdmin1'
+    };
     const login = {
       email: 'admin@wolox.com.ar',
       password: 'passwordAdmin1'
     };
     it('Should successfully POST when an adminUser registers a new admin', done => {
-      // Given
-      const newAdmin = {
-        firstName: 'newAdmin',
-        lastName: 'newAdmin',
-        email: 'newAdmin@wolox.com.ar',
-        password: 'passwordNewAdmin1'
-      };
       // When
       User.create(adminUser).then(() => {
         chai
@@ -581,13 +580,6 @@ describe('user', () => {
       });
     });
     it('Should successfully POST when an adminUser registers an user how admin', done => {
-      // Given
-      const newAdmin = {
-        firstName: 'newAdmin',
-        lastName: 'newAdmin',
-        email: 'newAdmin2@wolox.com.ar',
-        password: 'passwordNewAdmin2'
-      };
       // When
       User.create(adminUser).then(() => {
         chai
@@ -631,12 +623,6 @@ describe('user', () => {
         password: 'passwordAdmin1',
         admin: false
       };
-      const newAdmin = {
-        firstName: 'newAdmin',
-        lastName: 'newAdmin',
-        email: 'newAdmin2@wolox.com.ar',
-        password: 'passwordNewAdmin2'
-      };
       // When
       User.create(regularUser).then(() => {
         chai
@@ -657,20 +643,20 @@ describe('user', () => {
                   .set('authorization', `Bearer ${token}`)
                   .catch(err => {
                     // Expect
-                    err.should.have.status(401);
-                    done();
+                    User.findOne({
+                      where: { email: newAdmin.email }
+                    }).then(resNewAdmin => {
+                      err.should.have.status(401);
+                      resNewAdmin.email.should.be.eq(newAdmin.email);
+                      resNewAdmin.admin.should.be.eq(false);
+                      done();
+                    });
                   });
               });
           });
       });
     });
     it('Should throw an error when sending to POST when an admin is not logged registers an user how admin', done => {
-      const newAdmin = {
-        firstName: 'newAdmin',
-        lastName: 'newAdmin',
-        email: 'newAdmin2@wolox.com.ar',
-        password: 'passwordNewAdmin2'
-      };
       // When
       chai
         .request(server)
@@ -679,6 +665,48 @@ describe('user', () => {
         .catch(err => {
           // Expect
           err.should.have.status(401);
+          done();
+        });
+    });
+    it('Should throw an error when sending to POST when an admin with incorrect mail', done => {
+      const adminWithIncorrectMail = {
+        firstName: 'newAdmin',
+        lastName: 'newAdmin',
+        email: 'newAdmin2@wrong.com.ar',
+        password: 'passwordNewAdmin2'
+      };
+      // When
+      chai
+        .request(server)
+        .post('/admin/users')
+        .send(adminWithIncorrectMail)
+        .catch(err => {
+          // Expect
+          err.should.have.status(401);
+          err.response.body.should.be.an('array');
+          err.response.body.length.should.be.eq(1);
+          err.response.body.should.include('Invalid Mail');
+          done();
+        });
+    });
+    it('Should throw an error when sending to POST when an admin with the invalid password', done => {
+      const adminWithIvalidPassword = {
+        firstName: 'newAdmin',
+        lastName: 'newAdmin',
+        email: 'newAdmin2@wolox.com.ar',
+        password: 'invalid'
+      };
+      // When
+      chai
+        .request(server)
+        .post('/admin/users')
+        .send(adminWithIvalidPassword)
+        .catch(err => {
+          // Expect
+          err.should.have.status(401);
+          err.response.body.should.be.an('array');
+          err.response.body.length.should.be.eq(1);
+          err.response.body.should.include('Invalid Password');
           done();
         });
     });
