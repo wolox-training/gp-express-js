@@ -8,8 +8,7 @@ const user = {
   firstName: 'FirstName',
   lastName: 'LastName',
   email: 'test@wolox.com.ar',
-  password: 'passwordTest1',
-  admin: false
+  password: 'passwordTest1'
 };
 
 describe('user', () => {
@@ -76,8 +75,7 @@ describe('user', () => {
         firstName: 'FirstName',
         lastName: 'LastName',
         email: 'test@wolox.com.ar',
-        password: 'invalid',
-        admin: false
+        password: 'invalid'
       };
       // When
       chai
@@ -99,8 +97,7 @@ describe('user', () => {
         firstName: 'FirstName',
         lastName: 'LastName',
         email: 'test@invalid.com.ar',
-        password: 'passwordTest1',
-        admin: false
+        password: 'passwordTest1'
       };
       // When
       chai
@@ -141,8 +138,8 @@ describe('user', () => {
               res.body.should.have.property('token');
               res.body.user.email.should.be.eq(user.email);
               dictum.chai(res);
-            })
-            .then(() => done());
+              done();
+            });
         });
     });
     it('Should throw an error when sending to POST a login with empty fields', done => {
@@ -158,7 +155,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(emptyLogin)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -187,7 +183,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(loginWithAnIncorrectPassword)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -211,7 +206,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(loginWithAnInvalidPassword)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -234,7 +228,6 @@ describe('user', () => {
         .request(server)
         .post('/users/sessions')
         .send(loginWithAnIncorrectMail)
-        .then(() => done())
         .catch(err => {
           // Expect
           err.should.have.status(401);
@@ -260,7 +253,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(loginWithAnInvalidMail)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -277,8 +269,7 @@ describe('user', () => {
         firstName: 'FirstName2',
         lastName: 'LastName2',
         email: 'test2@wolox.com.ar',
-        password: 'passwordTest2',
-        admin: false
+        password: 'passwordTest2'
       };
       beforeEach(() => {
         User.create(otherUser);
@@ -311,8 +302,8 @@ describe('user', () => {
                     res.body.users.should.be.an('array');
                     res.body.users.length.should.be.eq(2);
                     dictum.chai(res);
-                  })
-                  .then(() => done());
+                    done();
+                  });
               });
           });
       });
@@ -372,38 +363,12 @@ describe('user', () => {
                     res.body.users.should.be.an('array');
                     res.body.users.length.should.be.eq(1);
                     dictum.chai(res);
-                  })
-                  .then(() => done());
+                    done();
+                  });
               });
           });
       });
     });
-  });
-  it('Should successfully POST login', done => {
-    // Given
-    const login = {
-      email: 'test@wolox.com.ar',
-      password: 'passwordTest1'
-    };
-    // When
-    chai
-      .request(server)
-      .post('/users')
-      .send(user)
-      .then(() => {
-        chai
-          .request(server)
-          .post('/users/sessions')
-          .send(login)
-          .then(res => {
-            // Expect
-            res.should.have.status(200);
-            res.body.should.have.property('token');
-            res.body.user.email.should.be.eq(user.email);
-            dictum.chai(res);
-          })
-          .then(() => done());
-      });
   });
   it('Should throw an error when sending to POST a login with empty fields', done => {
     // Given
@@ -418,7 +383,6 @@ describe('user', () => {
           .request(server)
           .post('/users/sessions')
           .send(emptyLogin)
-          .then(() => done())
           .catch(err => {
             // Expect
             err.should.have.status(401);
@@ -447,7 +411,6 @@ describe('user', () => {
           .request(server)
           .post('/users/sessions')
           .send(loginWithAnIncorrectPassword)
-          .then(() => done())
           .catch(err => {
             // Expect
             err.should.have.status(401);
@@ -471,7 +434,6 @@ describe('user', () => {
           .request(server)
           .post('/users/sessions')
           .send(loginWithAnInvalidPassword)
-          .then(() => done())
           .catch(err => {
             // Expect
             err.should.have.status(401);
@@ -494,7 +456,6 @@ describe('user', () => {
       .request(server)
       .post('/users/sessions')
       .send(loginWithAnIncorrectMail)
-      .then(() => done())
       .catch(err => {
         // Expect
         err.should.have.status(401);
@@ -520,7 +481,6 @@ describe('user', () => {
           .request(server)
           .post('/users/sessions')
           .send(loginWithAnInvalidMail)
-          .then(() => done())
           .catch(err => {
             // Expect
             err.should.have.status(401);
@@ -620,8 +580,7 @@ describe('user', () => {
         firstName: 'admin',
         lastName: 'admin',
         email: 'admin@wolox.com.ar',
-        password: 'passwordAdmin1',
-        admin: false
+        password: 'passwordAdmin1'
       };
       // When
       User.create(regularUser).then(() => {

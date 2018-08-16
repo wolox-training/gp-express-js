@@ -65,15 +65,7 @@ exports.checkAdmin = (req, res, next) => {
     User.findOne({
       where: { email: token.email }
     }).then(anUser => {
-      if (anUser && token) {
-        if (anUser.admin) {
-          next();
-        } else {
-          res.status(401).send(['Denied Permission, you are not administrator']);
-        }
-      } else {
-        res.status(401).send('Incorrect token');
-      }
+      anUser && anUser.admin && token ? next() : res.status(401).send('Denied Permission');
     });
   } else {
     res.status(401).send('You are not logged in');

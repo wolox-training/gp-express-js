@@ -4,20 +4,19 @@ const bcrypt = require('bcryptjs'),
   config = require('../../config'),
   logger = require('../logger');
 
-exports.signUp = (req, res, next) => {
-  const user = req.body
+const createUser = (res, user, admin) => {
+  const newUser = user
     ? {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        password: req.body.password,
-        email: req.body.email,
-        admin: false
+        firstName: user.firstName,
+        lastName: user.lastName,
+        password: user.password,
+        email: user.email,
+        admin
       }
     : {};
-  logger.info('Starting user creation');
-  User.create(user)
+  User.create(newUser)
     .then(() => {
-      logger.info(`User ${user.firstName} was created successfully`);
+      logger.info(`User ${newUser.firstName} was created successfully`);
       res.status(200);
       res.end();
     })
@@ -25,6 +24,11 @@ exports.signUp = (req, res, next) => {
       logger.error('Database error, the user could not be created');
       res.status(500).send(err);
     });
+};
+
+exports.signUp = (req, res, next) => {
+  logger.info('Starting user creation');
+  createUser(res, req.body, false);
 };
 
 exports.signIn = (req, res, next) => {
@@ -82,25 +86,7 @@ exports.list = (req, res, next) => {
 
 const createAdmin = (res, user) => {
   logger.info('Starting user admin creation');
-  const userAdmin = user
-    ? {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        password: user.password,
-        email: user.email,
-        admin: true
-      }
-    : {};
-  User.create(userAdmin)
-    .then(() => {
-      logger.info(`User ${userAdmin.firstName} was created successfully`);
-      res.status(200);
-      res.end();
-    })
-    .catch(err => {
-      logger.error('Database error, the user could not be created');
-      res.status(500).send(err);
-    });
+  createUser(res, user, true);
 };
 
 const updateUserAdmin = (res, user) => {

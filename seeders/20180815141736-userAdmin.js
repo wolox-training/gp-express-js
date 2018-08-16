@@ -25,5 +25,3 @@ module.exports = {
     return queryInterface.bulkDelete('Users', null, {});
   }
 };
-// run seed: node_modules/.bin/sequelize db:seed:all
-// page: http://docs.sequelizejs.com/manual/tutorial/migrations.html
