@@ -66,12 +66,25 @@ exports.checkAdmin = (req, res, next) => {
       where: { email: token.email }
     }).then(anUser => {
       if (anUser && token) {
-        anUser.admin ? next() : res.status(401).send('Denied Permission, you are not administrator');
+        if (anUser.admin) {
+          next();
+        } else {
+          res.status(401).send(['Denied Permission, you are not administrator']);
+        }
       } else {
         res.status(401).send('Incorrect token');
       }
     });
   } else {
     res.status(401).send('You are not logged in');
+  }
+};
+
+exports.validateAdmin = (req, res, next) => {
+  const validations = baseValidation(req.body.email, req.body.password);
+  if (validations.isWoloxValidEmail && validations.isPasswordValid) {
+    next();
+  } else {
+    res.status(401).send(validations.errors);
   }
 };

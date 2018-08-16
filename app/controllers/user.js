@@ -111,8 +111,11 @@ const updateUserAdmin = (res, user) => {
     res.status(200).send(youAreAlreadyAdministratorMessage);
     res.end();
   } else {
-    user.admin = true;
-    User.update(user)
+    const toAdmin = {
+      admin: true
+    };
+    user
+      .update(toAdmin)
       .then(() => {
         logger.info(`User ${user.firstName} was updated successfully`);
         res.status(200);
@@ -126,7 +129,7 @@ const updateUserAdmin = (res, user) => {
 };
 
 exports.signUpAdmin = (req, res, next) => {
-  logger.info('Starting user admin updating');
+  logger.info('Starting user admin creation');
   User.findOne({
     where: { email: req.body.email }
   })
