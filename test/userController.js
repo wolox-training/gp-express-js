@@ -138,8 +138,8 @@ describe('user', () => {
               res.body.should.have.property('token');
               res.body.user.email.should.be.eq(user.email);
               dictum.chai(res);
-            })
-            .then(() => done());
+              done();
+            });
         });
     });
     it('Should throw an error when sending to POST a login with empty fields', done => {
@@ -155,7 +155,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(emptyLogin)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -184,7 +183,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(loginWithAnIncorrectPassword)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -208,7 +206,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(loginWithAnInvalidPassword)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -231,7 +228,6 @@ describe('user', () => {
         .request(server)
         .post('/users/sessions')
         .send(loginWithAnIncorrectMail)
-        .then(() => done())
         .catch(err => {
           // Expect
           err.should.have.status(401);
@@ -257,7 +253,6 @@ describe('user', () => {
             .request(server)
             .post('/users/sessions')
             .send(loginWithAnInvalidMail)
-            .then(() => done())
             .catch(err => {
               // Expect
               err.should.have.status(401);
@@ -307,8 +302,8 @@ describe('user', () => {
                     res.body.users.should.be.an('array');
                     res.body.users.length.should.be.eq(2);
                     dictum.chai(res);
-                  })
-                  .then(() => done());
+                    done();
+                  });
               });
           });
       });
@@ -368,11 +363,189 @@ describe('user', () => {
                     res.body.users.should.be.an('array');
                     res.body.users.length.should.be.eq(1);
                     dictum.chai(res);
-                  })
-                  .then(() => done());
+                    done();
+                  });
               });
           });
       });
+    });
+  });
+  describe('/admin/users POST', () => {
+    const adminUser = {
+      firstName: 'admin',
+      lastName: 'admin',
+      email: 'admin@wolox.com.ar',
+      password: 'passwordAdmin1',
+      admin: true
+    };
+    const newAdmin = {
+      firstName: 'newAdmin',
+      lastName: 'newAdmin',
+      email: 'newAdmin@wolox.com.ar',
+      password: 'passwordNewAdmin1'
+    };
+    const login = {
+      email: 'admin@wolox.com.ar',
+      password: 'passwordAdmin1'
+    };
+    it('Should successfully POST when an adminUser registers a new admin', done => {
+      // When
+      User.create(adminUser).then(() => {
+        chai
+          .request(server)
+          .post('/users/sessions')
+          .send(login)
+          .then(resToken => {
+            const token = resToken.body.token;
+            chai
+              .request(server)
+              .post('/admin/users')
+              .send(newAdmin)
+              .set('authorization', `Bearer ${token}`)
+              .then(res => {
+                // Expect
+                User.findOne({
+                  where: { email: newAdmin.email }
+                }).then(resNewAdmin => {
+                  res.should.have.status(200);
+                  resNewAdmin.email.should.be.eq(newAdmin.email);
+                  resNewAdmin.admin.should.be.eq(!newAdmin.admin);
+                  dictum.chai(res);
+                  done();
+                });
+              });
+          });
+      });
+    });
+    it('Should successfully POST when an adminUser registers an user how admin', done => {
+      // When
+      User.create(adminUser).then(() => {
+        chai
+          .request(server)
+          .post('/users')
+          .send(newAdmin)
+          .then(() => {
+            chai
+              .request(server)
+              .post('/users/sessions')
+              .send(login)
+              .then(resToken => {
+                const token = resToken.body.token;
+                chai
+                  .request(server)
+                  .post('/admin/users')
+                  .send(newAdmin)
+                  .set('authorization', `Bearer ${token}`)
+                  .then(res => {
+                    // Expect
+                    User.findOne({
+                      where: { email: newAdmin.email }
+                    }).then(resNewAdmin => {
+                      res.should.have.status(200);
+                      resNewAdmin.email.should.be.eq(newAdmin.email);
+                      resNewAdmin.admin.should.be.eq(!newAdmin.admin);
+                      dictum.chai(res);
+                      done();
+                    });
+                  });
+              });
+          });
+      });
+    });
+    it('Should throw an error when sending to POST when a normal user registers an user how admin', done => {
+      // Given
+      const regularUser = {
+        firstName: 'admin',
+        lastName: 'admin',
+        email: 'admin@wolox.com.ar',
+        password: 'passwordAdmin1'
+      };
+      // When
+      User.create(regularUser).then(() => {
+        chai
+          .request(server)
+          .post('/users')
+          .send(newAdmin)
+          .then(() => {
+            chai
+              .request(server)
+              .post('/users/sessions')
+              .send(login)
+              .then(resToken => {
+                const token = resToken.body.token;
+                chai
+                  .request(server)
+                  .post('/admin/users')
+                  .send(newAdmin)
+                  .set('authorization', `Bearer ${token}`)
+                  .catch(err => {
+                    // Expect
+                    User.findOne({
+                      where: { email: newAdmin.email }
+                    }).then(resNewAdmin => {
+                      err.should.have.status(401);
+                      resNewAdmin.email.should.be.eq(newAdmin.email);
+                      resNewAdmin.admin.should.be.eq(false);
+                      done();
+                    });
+                  });
+              });
+          });
+      });
+    });
+    it('Should throw an error when sending to POST when an admin is not logged registers an user how admin', done => {
+      // When
+      chai
+        .request(server)
+        .post('/admin/users')
+        .send(newAdmin)
+        .catch(err => {
+          // Expect
+          err.should.have.status(401);
+          done();
+        });
+    });
+    it('Should throw an error when sending to POST when an admin with incorrect mail', done => {
+      const adminWithIncorrectMail = {
+        firstName: 'newAdmin',
+        lastName: 'newAdmin',
+        email: 'newAdmin2@wrong.com.ar',
+        password: 'passwordNewAdmin2'
+      };
+      // When
+      chai
+        .request(server)
+        .post('/admin/users')
+        .send(adminWithIncorrectMail)
+        .catch(err => {
+          // Expect
+          err.should.have.status(401);
+          err.response.body.should.be.an('array');
+          err.response.body.length.should.be.eq(1);
+          err.response.body.should.include('Invalid Mail');
+          done();
+        });
+    });
+    it('Should throw an error when sending to POST when an admin with the invalid password', done => {
+      const adminWithIvalidPassword = {
+        firstName: 'newAdmin',
+        lastName: 'newAdmin',
+        email: 'newAdmin2@wolox.com.ar',
+        password: 'invalid'
+      };
+      // When
+      chai
+        .request(server)
+        .post('/admin/users')
+        .send(adminWithIvalidPassword)
+        .catch(err => {
+          // Expect
+          err.should.have.status(401);
+          err.response.body.should.be.an('array');
+          err.response.body.length.should.be.eq(1);
+          err.response.body.should.include('Invalid Password');
+          done();
+        });
     });
   });
 });

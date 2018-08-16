@@ -4,19 +4,19 @@ const bcrypt = require('bcryptjs'),
   config = require('../../config'),
   logger = require('../logger');
 
-exports.signUp = (req, res, next) => {
-  const user = req.body
+const createUser = (res, user, admin) => {
+  const newUser = user
     ? {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        password: req.body.password,
-        email: req.body.email
+        firstName: user.firstName,
+        lastName: user.lastName,
+        password: user.password,
+        email: user.email,
+        admin
       }
     : {};
-  logger.info('Starting user creation');
-  User.create(user)
+  User.create(newUser)
     .then(() => {
-      logger.info(`User ${user.firstName} was created successfully`);
+      logger.info(`User ${newUser.firstName} was created successfully`);
       res.status(200);
       res.end();
     })
@@ -24,6 +24,11 @@ exports.signUp = (req, res, next) => {
       logger.error('Database error, the user could not be created');
       res.status(500).send(err);
     });
+};
+
+exports.signUp = (req, res, next) => {
+  logger.info('Starting user creation');
+  createUser(res, req.body, false);
 };
 
 exports.signIn = (req, res, next) => {
@@ -76,5 +81,53 @@ exports.list = (req, res, next) => {
       const databaseError = 'Database error';
       logger.error(databaseError);
       res.status(401).send(databaseError);
+    });
+};
+
+const createAdmin = (res, user) => {
+  logger.info('Starting user admin creation');
+  createUser(res, user, true);
+};
+
+const updateUserAdmin = (res, user) => {
+  logger.info('Starting user admin updating');
+  if (user.admin) {
+    const youAreAlreadyAdministratorMessage = 'You are already administrator';
+    logger.info(youAreAlreadyAdministratorMessage);
+    res.status(200).send(youAreAlreadyAdministratorMessage);
+    res.end();
+  } else {
+    const toAdmin = {
+      admin: true
+    };
+    user
+      .update(toAdmin)
+      .then(() => {
+        logger.info(`User ${user.firstName} was updated successfully`);
+        res.status(200);
+        res.end();
+      })
+      .catch(err => {
+        logger.error('Database error, the user could not be created');
+        res.status(500).send(err);
+      });
+  }
+};
+
+exports.signUpAdmin = (req, res, next) => {
+  logger.info('Starting user admin creation');
+  User.findOne({
+    where: { email: req.body.email }
+  })
+    .then(userLogged => {
+      if (userLogged) {
+        updateUserAdmin(res, userLogged);
+      } else {
+        createAdmin(res, req.body);
+      }
+    })
+    .catch(err => {
+      logger.error('Database error');
+      res.status(500).send(err);
     });
 };

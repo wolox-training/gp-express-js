@@ -57,3 +57,26 @@ exports.verifyAuthentication = (req, res, next) => {
     res.status(401).send('You are not logged in');
   }
 };
+
+exports.checkAdmin = (req, res, next) => {
+  if (req.headers.authorization) {
+    const tokenString = req.headers.authorization.replace('Bearer ', '');
+    const token = jwt.decode(tokenString, config.common.session.secret);
+    User.findOne({
+      where: { email: token.email }
+    }).then(anUser => {
+      anUser && anUser.admin && token ? next() : res.status(401).send('Denied Permission');
+    });
+  } else {
+    res.status(401).send('You are not logged in');
+  }
+};
+
+exports.validateAdmin = (req, res, next) => {
+  const validations = baseValidation(req.body.email, req.body.password);
+  if (validations.isWoloxValidEmail && validations.isPasswordValid) {
+    next();
+  } else {
+    res.status(401).send(validations.errors);
+  }
+};
