@@ -1,8 +1,8 @@
 const bcrypt = require('bcryptjs'),
-  User = require('../models').User,
   jwt = require('jsonwebtoken'),
   config = require('../../config'),
-  logger = require('../logger');
+  logger = require('../logger'),
+  userInteractor = require('../interactors/user');
 
 const createUser = (res, user, admin) => {
   const newUser = user
@@ -14,7 +14,8 @@ const createUser = (res, user, admin) => {
         admin
       }
     : {};
-  User.create(newUser)
+  userInteractor
+    .create(newUser)
     .then(() => {
       logger.info(`User ${newUser.firstName} was created successfully`);
       res.status(200);
@@ -38,9 +39,8 @@ exports.signIn = (req, res, next) => {
         password: req.body.password
       }
     : {};
-  User.findOne({
-    where: { email: login.email }
-  })
+  userInteractor
+    .findOneByEmail(login.email)
     .then(userLogged => {
       bcrypt.compare(login.password, userLogged.password).then(samePassword => {
         if (samePassword) {
@@ -68,11 +68,8 @@ exports.signIn = (req, res, next) => {
 };
 
 exports.list = (req, res, next) => {
-  User.findAll({
-    attributes: ['firstName', 'lastName', 'email'],
-    offset: req.query.offset,
-    limit: req.query.limit
-  })
+  userInteractor
+    .userList(req.query.offset, req.query.limit)
     .then(users => {
       res.status(200).send({ users });
       res.end();
@@ -100,8 +97,8 @@ const updateUserAdmin = (res, user) => {
     const toAdmin = {
       admin: true
     };
-    user
-      .update(toAdmin)
+    userInteractor
+      .update(user, toAdmin)
       .then(() => {
         logger.info(`User ${user.firstName} was updated successfully`);
         res.status(200);
@@ -116,9 +113,8 @@ const updateUserAdmin = (res, user) => {
 
 exports.signUpAdmin = (req, res, next) => {
   logger.info('Starting user admin creation');
-  User.findOne({
-    where: { email: req.body.email }
-  })
+  userInteractor
+    .findOneByEmail(req.body.email)
     .then(userLogged => {
       if (userLogged) {
         updateUserAdmin(res, userLogged);

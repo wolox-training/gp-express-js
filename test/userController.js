@@ -1,5 +1,5 @@
 const chai = require('chai'),
-  User = require('../app/models').User,
+  userInteractor = require('../app/interactors/user'),
   dictum = require('dictum.js'),
   server = require('./../app'),
   should = chai.should();
@@ -404,9 +404,8 @@ describe('user', () => {
               .set('authorization', `Bearer ${token}`)
               .then(res => {
                 // Expect
-                User.findOne({
-                  where: { email: newAdmin.email }
-                }).then(resNewAdmin => {
+                userInteractor.findOneByEmail(newAdmin.email)
+                .then(resNewAdmin => {
                   res.should.have.status(200);
                   resNewAdmin.email.should.be.eq(newAdmin.email);
                   resNewAdmin.admin.should.be.eq(!newAdmin.admin);
@@ -438,9 +437,8 @@ describe('user', () => {
                   .set('authorization', `Bearer ${token}`)
                   .then(res => {
                     // Expect
-                    User.findOne({
-                      where: { email: newAdmin.email }
-                    }).then(resNewAdmin => {
+                    userInteractor.findOneByEmail(newAdmin.email)
+                    .then(resNewAdmin => {
                       res.should.have.status(200);
                       resNewAdmin.email.should.be.eq(newAdmin.email);
                       resNewAdmin.admin.should.be.eq(!newAdmin.admin);
@@ -480,9 +478,8 @@ describe('user', () => {
                   .set('authorization', `Bearer ${token}`)
                   .catch(err => {
                     // Expect
-                    User.findOne({
-                      where: { email: newAdmin.email }
-                    }).then(resNewAdmin => {
+                    userInteractor.findOneByEmail(newAdmin.email)
+                    .then(resNewAdmin => {
                       err.should.have.status(401);
                       resNewAdmin.email.should.be.eq(newAdmin.email);
                       resNewAdmin.admin.should.be.eq(false);
