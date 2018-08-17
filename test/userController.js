@@ -378,6 +378,7 @@ describe('user', () => {
         });
     });
     it('Should throw an error when sending to POST when an admin with incorrect mail', done => {
+      // Given
       const adminWithIncorrectMail = {
         firstName: 'newAdmin',
         lastName: 'newAdmin',
@@ -399,6 +400,7 @@ describe('user', () => {
         });
     });
     it('Should throw an error when sending to POST when an admin with the invalid password', done => {
+      // Given
       const adminWithIvalidPassword = {
         firstName: 'newAdmin',
         lastName: 'newAdmin',
