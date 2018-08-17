@@ -1,6 +1,6 @@
-const User = require('../models').User,
-  jwt = require('jsonwebtoken'),
+const jwt = require('jsonwebtoken'),
   config = require('../../config'),
+  userInteractor = require('../interactors/user'),
   error = require('../services/errors');
 
 const baseValidation = (email, password) => {
@@ -14,9 +14,7 @@ const baseValidation = (email, password) => {
 
 exports.validate = (req, res, next) => {
   const validations = baseValidation(req.body.email, req.body.password);
-  User.findOne({
-    where: { email: req.body.email }
-  }).then(oldUser => {
+  userInteractor.findOneByEmail(req.body.email).then(oldUser => {
     if (!oldUser && validations.isWoloxValidEmail && validations.isPasswordValid) {
       next();
     } else {
@@ -28,9 +26,7 @@ exports.validate = (req, res, next) => {
 
 exports.validateLogin = (req, res, next) => {
   const validations = baseValidation(req.body.email, req.body.password);
-  User.findOne({
-    where: { email: req.body.email }
-  }).then(oldUser => {
+  userInteractor.findOneByEmail(req.body.email).then(oldUser => {
     if (oldUser && validations.isWoloxValidEmail && validations.isPasswordValid) {
       next();
     } else {
@@ -44,9 +40,7 @@ exports.verifyAuthentication = (req, res, next) => {
   if (req.headers.authorization) {
     const tokenString = req.headers.authorization.replace('Bearer ', '');
     const token = jwt.decode(tokenString, config.common.session.secret);
-    User.findOne({
-      where: { email: token.email }
-    }).then(anUser => {
+    userInteractor.findOneByEmail(token.email).then(anUser => {
       if (anUser && token) {
         next();
       } else {
@@ -62,9 +56,7 @@ exports.checkAdmin = (req, res, next) => {
   if (req.headers.authorization) {
     const tokenString = req.headers.authorization.replace('Bearer ', '');
     const token = jwt.decode(tokenString, config.common.session.secret);
-    User.findOne({
-      where: { email: token.email }
-    }).then(anUser => {
+    userInteractor.findOneByEmail(token.email).then(anUser => {
       anUser && anUser.admin && token ? next() : res.status(401).send('Denied Permission');
     });
   } else {

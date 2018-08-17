@@ -1,5 +1,5 @@
 const chai = require('chai'),
-  User = require('../app/models').User,
+  userInteractor = require('../app/interactors/user'),
   dictum = require('dictum.js'),
   server = require('./../app'),
   should = chai.should();
@@ -142,128 +142,6 @@ describe('user', () => {
             });
         });
     });
-    it('Should throw an error when sending to POST a login with empty fields', done => {
-      // Given
-      const emptyLogin = {};
-      // When
-      chai
-        .request(server)
-        .post('/users')
-        .send(user)
-        .then(() => {
-          chai
-            .request(server)
-            .post('/users/sessions')
-            .send(emptyLogin)
-            .catch(err => {
-              // Expect
-              err.should.have.status(401);
-              err.response.body.should.be.an('array');
-              err.response.body.length.should.be.eq(3);
-              err.response.body.should.include('Invalid Mail');
-              err.response.body.should.include('Invalid Password');
-              err.response.body.should.include('Non existent mail');
-              done();
-            });
-        });
-    });
-    it('Should throw an error when sending to POST a login with an incorect password', done => {
-      // Given
-      const loginWithAnIncorrectPassword = {
-        email: 'test@wolox.com.ar',
-        password: 'incorrectPassword'
-      };
-      // When
-      chai
-        .request(server)
-        .post('/users')
-        .send(user)
-        .then(() => {
-          chai
-            .request(server)
-            .post('/users/sessions')
-            .send(loginWithAnIncorrectPassword)
-            .catch(err => {
-              // Expect
-              err.should.have.status(401);
-              done();
-            });
-        });
-    });
-    it('Should throw an error when sending to POST a login with an invalid password', done => {
-      // Given
-      const loginWithAnInvalidPassword = {
-        email: 'test@wolox.com.ar',
-        password: 'invalid'
-      };
-      // When
-      chai
-        .request(server)
-        .post('/users')
-        .send(user)
-        .then(() => {
-          chai
-            .request(server)
-            .post('/users/sessions')
-            .send(loginWithAnInvalidPassword)
-            .catch(err => {
-              // Expect
-              err.should.have.status(401);
-              err.response.body.should.be.an('array');
-              err.response.body.length.should.be.eq(1);
-              err.response.body.should.include('Invalid Password');
-              done();
-            });
-        });
-    });
-    it('Should throw an error when sending to POST a login with an incorect email', done => {
-      // Given
-      const loginWithAnIncorrectMail = {
-        email: 'incorrect@wolox.com.ar',
-        password: 'passwordTest1'
-      };
-      // When
-
-      chai
-        .request(server)
-        .post('/users/sessions')
-        .send(loginWithAnIncorrectMail)
-        .catch(err => {
-          // Expect
-          err.should.have.status(401);
-          err.response.body.should.be.an('array');
-          err.response.body.length.should.be.eq(1);
-          err.response.body.should.include('Non existent mail');
-          done();
-        });
-    });
-    it('Should throw an error when sending to POST a login with an invalid email', done => {
-      // Given
-      const loginWithAnInvalidMail = {
-        email: 'test@invalid.com.ar',
-        password: 'passwordTest1'
-      };
-      // When
-      chai
-        .request(server)
-        .post('/users')
-        .send(user)
-        .then(() => {
-          chai
-            .request(server)
-            .post('/users/sessions')
-            .send(loginWithAnInvalidMail)
-            .catch(err => {
-              // Expect
-              err.should.have.status(401);
-              err.response.body.should.be.an('array');
-              err.response.body.length.should.be.eq(2);
-              err.response.body.should.include('Invalid Mail');
-              err.response.body.should.include('Non existent mail');
-              done();
-            });
-        });
-    });
     describe('/users GET', () => {
       const otherUser = {
         firstName: 'FirstName2',
@@ -272,7 +150,7 @@ describe('user', () => {
         password: 'passwordTest2'
       };
       beforeEach(() => {
-        User.create(otherUser);
+        userInteractor.create(otherUser);
       });
       it('Should successfully GET users', done => {
         // Given
@@ -390,7 +268,7 @@ describe('user', () => {
     };
     it('Should successfully POST when an adminUser registers a new admin', done => {
       // When
-      User.create(adminUser).then(() => {
+      userInteractor.create(adminUser).then(() => {
         chai
           .request(server)
           .post('/users/sessions')
@@ -404,9 +282,7 @@ describe('user', () => {
               .set('authorization', `Bearer ${token}`)
               .then(res => {
                 // Expect
-                User.findOne({
-                  where: { email: newAdmin.email }
-                }).then(resNewAdmin => {
+                userInteractor.findOneByEmail(newAdmin.email).then(resNewAdmin => {
                   res.should.have.status(200);
                   resNewAdmin.email.should.be.eq(newAdmin.email);
                   resNewAdmin.admin.should.be.eq(!newAdmin.admin);
@@ -419,7 +295,7 @@ describe('user', () => {
     });
     it('Should successfully POST when an adminUser registers an user how admin', done => {
       // When
-      User.create(adminUser).then(() => {
+      userInteractor.create(adminUser).then(() => {
         chai
           .request(server)
           .post('/users')
@@ -438,9 +314,7 @@ describe('user', () => {
                   .set('authorization', `Bearer ${token}`)
                   .then(res => {
                     // Expect
-                    User.findOne({
-                      where: { email: newAdmin.email }
-                    }).then(resNewAdmin => {
+                    userInteractor.findOneByEmail(newAdmin.email).then(resNewAdmin => {
                       res.should.have.status(200);
                       resNewAdmin.email.should.be.eq(newAdmin.email);
                       resNewAdmin.admin.should.be.eq(!newAdmin.admin);
@@ -461,7 +335,7 @@ describe('user', () => {
         password: 'passwordAdmin1'
       };
       // When
-      User.create(regularUser).then(() => {
+      userInteractor.create(regularUser).then(() => {
         chai
           .request(server)
           .post('/users')
@@ -480,9 +354,7 @@ describe('user', () => {
                   .set('authorization', `Bearer ${token}`)
                   .catch(err => {
                     // Expect
-                    User.findOne({
-                      where: { email: newAdmin.email }
-                    }).then(resNewAdmin => {
+                    userInteractor.findOneByEmail(newAdmin.email).then(resNewAdmin => {
                       err.should.have.status(401);
                       resNewAdmin.email.should.be.eq(newAdmin.email);
                       resNewAdmin.admin.should.be.eq(false);
