@@ -12,4 +12,5 @@ exports.init = app => {
     userController.signUpAdmin
   );
   app.get('/albums', userValidations.verifyAuthentication, albumController.list);
+  app.post('/albums/:id', [userValidations.verifyAuthentication], albumController.buy);
 };

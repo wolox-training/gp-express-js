@@ -15,3 +15,5 @@ exports.list = (req, res, next) => {
       return res.status(502).send(error);
     });
 };
+
+exports.buy = (req, res, next) => {};

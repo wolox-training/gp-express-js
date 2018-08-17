@@ -10,7 +10,7 @@ describe('album', () => {
   describe('/album GET', () => {
     it('Should successfully GET list of albums', done => {
       // Given
-      const albumes = [
+      const albums = [
         {
           userId: 1,
           id: 1,
@@ -40,7 +40,7 @@ describe('album', () => {
       };
       nock(config.common.urlRequests.base)
         .get(config.common.urlRequests.albumList)
-        .reply(200, albumes);
+        .reply(200, albums);
       // When
       User.create(user).then(() => {
         chai
@@ -76,5 +76,3 @@ describe('album', () => {
     });
   });
 });
-
-chai;
