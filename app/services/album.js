@@ -4,4 +4,4 @@ const request = require('request-promise'),
 
 exports.allAlums = () => request(albumList);
 
-exports.findOneById = id => request(`https://jsonplaceholder.typicode.com/albums/${id}`);
+exports.findOneById = id => request(`${albumList}/${id}`);

@@ -1,5 +1,6 @@
 const chai = require('chai'),
   User = require('../app/models').User,
+  userInteractor = require('../app/interactors/user'),
   albumInteractor = require('../app/interactors/album'),
   dictum = require('dictum.js'),
   server = require('./../app'),
@@ -11,8 +12,7 @@ const user = {
   firstName: 'FirstName',
   lastName: 'LastName',
   email: 'test@wolox.com.ar',
-  password: 'passwordTest1',
-  admin: false
+  password: 'passwordTest1'
 };
 
 const login = {
@@ -21,8 +21,8 @@ const login = {
 };
 
 const albumOne = {
-  userId: 10,
   id: 1,
+  userId: 1,
   title: 'quidem molestiae enim'
 };
 
@@ -53,7 +53,7 @@ describe('album', () => {
         .get(config.common.urlRequests.albumList)
         .reply(200, albums);
       // When
-      User.create(user).then(() => {
+      userInteractor.create(user).then(() => {
         chai
           .request(server)
           .post('/users/sessions')
@@ -87,13 +87,14 @@ describe('album', () => {
     });
   });
   describe('/albums/:id POST', () => {
-    it('Should successfully POST when an user buys an album', done => {
-      // Given
-      nock(config.common.urlRequests.base)
-        .get(`${config.common.urlRequests.albumList}/${albumId}`)
+    beforeEach(() => {
+      nock(`${config.common.urlRequests.base}${config.common.urlRequests.albumList}`)
+        .get(`/${albumId}`)
         .reply(200, albumOne);
+    });
+    it('Should successfully POST when an user buys an album', done => {
       // When
-      User.create(user).then(() => {
+      userInteractor.create(user).then(() => {
         chai
           .request(server)
           .post('/users/sessions')
@@ -130,15 +131,8 @@ describe('album', () => {
         });
     });
     it('Should throw an error when sending to POST when a user has already bought an album', done => {
-      // Given
-      nock(config.common.urlRequests.base)
-        .post(`${config.common.urlRequests.albumList}/${albumId}`)
-        .reply(200, albumOne);
-      nock(config.common.urlRequests.base)
-        .post(`${config.common.urlRequests.albumList}/${albumId}`)
-        .reply(401, 'You already bought the album');
       // When
-      User.create(user).then(() => {
+      userInteractor.create(user).then(() => {
         chai
           .request(server)
           .post('/users/sessions')
@@ -165,15 +159,8 @@ describe('album', () => {
       });
     });
     it('Should throw an error when sending to POST when an album does not exist', done => {
-      // Given
-      nock(config.common.urlRequests.base)
-        .get(`${config.common.urlRequests.albumList}/${albumId}`)
-        .reply(200, albumOne);
-      nock(config.common.urlRequests.base)
-        .post(`${config.common.urlRequests.albumList}/${albumId}`)
-        .reply(401, 'Nonexistent album');
       // When
-      User.create(user).then(() => {
+      userInteractor.create(user).then(() => {
         chai
           .request(server)
           .post('/users/sessions')
@@ -181,20 +168,13 @@ describe('album', () => {
           .then(resToken => {
             chai
               .request(server)
-              .post(`${config.common.urlRequests.albumList}/${albumId}`)
+              .post(`${config.common.urlRequests.albumList}/albunDoesNotExist`)
               .set('authorization', `Bearer ${resToken.body.token}`)
               .send({})
-              .then(() => {
-                chai
-                  .request(server)
-                  .post(`${config.common.urlRequests.albumList}/${albumId}`)
-                  .set('authorization', `Bearer ${resToken.body.token}`)
-                  .send({})
-                  .catch(err => {
-                    // Expect
-                    err.should.have.status(401);
-                    done();
-                  });
+              .catch(err => {
+                // Expect
+                err.should.have.status(500);
+                done();
               });
           });
       });

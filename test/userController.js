@@ -114,7 +114,6 @@ describe('user', () => {
         });
     });
   });
-
   describe('/users/sessions POST', () => {
     it('Should successfully POST login', done => {
       // Given

@@ -31,7 +31,6 @@ exports.buy = (req, res, next) => {
         userId: token.id,
         title: albumToBuyJSON.title
       };
-      const x = 1;
       albumInteractor
         .create(newBuy)
         .then(() => {
