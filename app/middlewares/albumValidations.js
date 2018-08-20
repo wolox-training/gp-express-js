@@ -17,3 +17,11 @@ exports.verifyBuy = (req, res, next) => {
       res.status(500).send(error);
     });
 };
+
+exports.verifyAuthGetAlbums = (req, res, next) => {
+  const tokenString = req.headers.authorization.replace('Bearer ', '');
+  const token = jwt.decode(tokenString, config.common.session.secret);
+  token.admin || req.params.user_id === token.id
+    ? next()
+    : res.status(401).send("You do not have permission to view the user's albums");
+};

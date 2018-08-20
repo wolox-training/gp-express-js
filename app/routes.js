@@ -18,4 +18,10 @@ exports.init = app => {
     [userValidations.verifyAuthentication, albumValidations.verifyBuy],
     albumController.buy
   );
+
+  app.get(
+    '/users/:user_id/albums',
+    [userValidations.verifyAuthentication, albumValidations.verifyAuthGetAlbums],
+    albumController.albumsList
+  );
 };
