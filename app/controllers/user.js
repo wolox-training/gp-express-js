@@ -45,7 +45,12 @@ exports.signIn = (req, res, next) => {
       bcrypt.compare(login.password, userLogged.password).then(samePassword => {
         if (samePassword) {
           logger.info(`${login.email} logged in correctly`);
-          const token = jwt.sign({ email: login.email }, config.common.session.secret);
+          const userLoggedToken = {
+            id: userLogged.id,
+            email: login.email,
+            admin: userLogged.admin
+          };
+          const token = jwt.sign(userLoggedToken, config.common.session.secret);
           res.status(200).send({
             user: {
               firstName: userLogged.firstName,
