@@ -1,7 +1,5 @@
 const albumService = require('../services/album'),
   albumInteractor = require('../interactors/album'),
-  jwt = require('jsonwebtoken'),
-  config = require('../../config'),
   logger = require('../logger');
 
 exports.list = (req, res, next) => {
