@@ -1,5 +1,6 @@
 const chai = require('chai'),
-  User = require('../app/models').User,
+  userInteractor = require('../app/interactors/user'),
+  albumInteractor = require('../app/interactors/album'),
   dictum = require('dictum.js'),
   server = require('./../app'),
   nock = require('nock'),
@@ -25,10 +26,16 @@ const albumOne = {
   title: 'quidem molestiae enim'
 };
 
+const albumTwo = {
+  id: 2,
+  userId: 1,
+  title: 'quidem molestiae enim2'
+};
+
 const albumId = 1;
 
 describe('album', () => {
-  describe('/album GET', () => {
+  describe('/albums GET', () => {
     it('Should successfully GET list of albums', done => {
       // Given
       const albums = [
@@ -48,22 +55,11 @@ describe('album', () => {
           title: 'omnis laborum odio'
         }
       ];
-      const user = {
-        firstName: 'FirstName',
-        lastName: 'LastName',
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1',
-        admin: false
-      };
-      const login = {
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       nock(config.common.urlRequests.base)
         .get(config.common.urlRequests.albumList)
         .reply(200, albums);
       // When
-      User.create(user).then(() => {
+      userInteractor.create(user).then(() => {
         chai
           .request(server)
           .post('/users/sessions')
@@ -190,19 +186,8 @@ describe('album', () => {
       });
     });
   });
-  describe('/albums/:id POST', () => {
-    // beforeEach(() => {
-    //   nock(`${config.common.urlRequests.base}${config.common.urlRequests.albumList}`)
-    //     .get(`/${albumId}`)
-    //     .reply(200, albumOne);
-    // });
+  describe('/users/:user_id/albums GET', () => {
     it('Should successfully get albums purchased by the same user', done => {
-      // Given
-      const albumTwo = {
-        id: 2,
-        userId: 1,
-        title: 'quidem molestiae enim2'
-      };
       // When
       userInteractor.create(user).then(() => {
         albumInteractor.create(albumOne).then(() => {
@@ -219,9 +204,10 @@ describe('album', () => {
                   .then(res => {
                     // Expect
                     res.should.have.status(200);
-                    // res.body.should.be.an('array');
-                    // res.body.length.should.be.eq(2);
-                    // res.body.should.include('Invalid Password');
+                    res.body.should.be.an('array');
+                    res.body.length.should.be.eq(2);
+                    res.body[0].userId.should.be.eq(user.id);
+                    res.body[1].userId.should.be.eq(user.id);
                     dictum.chai(res);
                     done();
                   });
@@ -229,6 +215,90 @@ describe('album', () => {
           });
         });
       });
+    });
+    it('An admin should successfully get albums purchased by another user', done => {
+      // Given
+      const adminUser = {
+        firstName: 'admin',
+        lastName: 'admin',
+        email: 'admin@wolox.com.ar',
+        password: 'passwordAdmin1',
+        admin: true
+      };
+      const loginAdmin = {
+        email: 'admin@wolox.com.ar',
+        password: 'passwordAdmin1'
+      };
+      // When
+      userInteractor.create(adminUser).then(() => {
+        albumInteractor.create(albumOne).then(() => {
+          albumInteractor.create(albumTwo).then(() => {
+            chai
+              .request(server)
+              .post('/users/sessions')
+              .send(loginAdmin)
+              .then(resToken => {
+                chai
+                  .request(server)
+                  .get(`/users/${user.id}/albums`)
+                  .set('authorization', `Bearer ${resToken.body.token}`)
+                  .then(res => {
+                    // Expect
+                    res.should.have.status(200);
+                    res.body.should.be.an('array');
+                    res.body.length.should.be.eq(2);
+                    res.body[0].userId.should.be.eq(user.id);
+                    res.body[1].userId.should.be.eq(user.id);
+                    dictum.chai(res);
+                    done();
+                  });
+              });
+          });
+        });
+      });
+    });
+    it('Should throw an error when sending to GET albums purchased by another user if the user is not admin', done => {
+      // Given
+      const anotherUser = {
+        id: 2,
+        firstName: 'FirstName2',
+        lastName: 'LastName2',
+        email: 'test2@wolox.com.ar',
+        password: 'passwordTest2'
+      };
+      const loginAnotherUser = {
+        email: 'test2@wolox.com.ar',
+        password: 'passwordTest2'
+      };
+      // When
+      userInteractor.create(anotherUser).then(() => {
+        chai
+          .request(server)
+          .post('/users/sessions')
+          .send(loginAnotherUser)
+          .then(resToken => {
+            chai
+              .request(server)
+              .get(`/users/${user.id}/albums`)
+              .set('authorization', `Bearer ${resToken.body.token}`)
+              .catch(error => {
+                // Expect
+                error.should.have.status(401);
+                done();
+              });
+          });
+      });
+    });
+    it('Should throw an error when sending to GET albums purchased by a userId if the user is not logged', done => {
+      // When
+      chai
+        .request(server)
+        .get(`/users/${user.id}/albums`)
+        .catch(error => {
+          // Expect
+          error.should.have.status(401);
+          done();
+        });
     });
   });
 });

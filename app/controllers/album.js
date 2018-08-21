@@ -1,7 +1,5 @@
 const albumService = require('../services/album'),
   albumInteractor = require('../interactors/album'),
-  jwt = require('jsonwebtoken'),
-  config = require('../../config'),
   logger = require('../logger');
 
 exports.list = (req, res, next) => {
@@ -20,15 +18,13 @@ exports.list = (req, res, next) => {
 
 exports.buy = (req, res, next) => {
   logger.info('Starting buy album');
-  const tokenString = req.headers.authorization.replace('Bearer ', '');
-  const token = jwt.decode(tokenString, config.common.session.secret);
   albumService
     .findOneById(req.params.id)
     .then(albumToBuy => {
       const albumToBuyJSON = JSON.parse(albumToBuy);
       const newBuy = {
         id: albumToBuyJSON.id,
-        userId: token.id,
+        userId: req.headers.user.id,
         title: albumToBuyJSON.title
       };
       albumInteractor
