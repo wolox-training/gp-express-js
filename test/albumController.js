@@ -9,6 +9,7 @@ const chai = require('chai'),
   should = chai.should();
 
 const user = {
+  id: 1,
   firstName: 'FirstName',
   lastName: 'LastName',
   email: 'test@wolox.com.ar',
@@ -177,6 +178,47 @@ describe('album', () => {
                 done();
               });
           });
+      });
+    });
+  });
+  describe('/albums/:id POST', () => {
+    // beforeEach(() => {
+    //   nock(`${config.common.urlRequests.base}${config.common.urlRequests.albumList}`)
+    //     .get(`/${albumId}`)
+    //     .reply(200, albumOne);
+    // });
+    it('Should successfully get albums purchased by the same user', done => {
+      // Given
+      const albumTwo = {
+        id: 2,
+        userId: 1,
+        title: 'quidem molestiae enim2'
+      };
+      // When
+      userInteractor.create(user).then(() => {
+        albumInteractor.create(albumOne).then(() => {
+          albumInteractor.create(albumTwo).then(() => {
+            chai
+              .request(server)
+              .post('/users/sessions')
+              .send(login)
+              .then(resToken => {
+                chai
+                  .request(server)
+                  .get(`/users/${user.id}/albums`)
+                  .set('authorization', `Bearer ${resToken.body.token}`)
+                  .then(res => {
+                    // Expect
+                    res.should.have.status(200);
+                    // res.body.should.be.an('array');
+                    // res.body.length.should.be.eq(2);
+                    // res.body.should.include('Invalid Password');
+                    dictum.chai(res);
+                    done();
+                  });
+              });
+          });
+        });
       });
     });
   });
