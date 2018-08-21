@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken'),
 exports.verifyBuy = (req, res, next) => {
   const tokenString = req.headers.authorization.replace('Bearer ', '');
   const token = jwt.decode(tokenString, config.common.session.secret);
+  req.headers.user = token;
   albumInteractor
     .findOneByIdAndUserId(req.params.id, token.id)
     .then(album => {
