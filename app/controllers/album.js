@@ -1,5 +1,7 @@
-const config = require('../../config'),
-  albumService = require('../services/album'),
+const albumService = require('../services/album'),
+  albumInteractor = require('../interactors/album'),
+  jwt = require('jsonwebtoken'),
+  config = require('../../config'),
   logger = require('../logger');
 
 exports.list = (req, res, next) => {
@@ -50,10 +52,10 @@ exports.buy = (req, res, next) => {
 exports.albumsList = (req, res, next) => {
   logger.info('Getting albums');
   albumInteractor
-    .findAllAlumsByUserId(req.params.user_id)
+    .findAllAlumsByUserId(parseInt(req.params.user_id))
     .then(albums => {
       logger.info('Get albums by userId successfully');
-      res.status(200).send(JSON.parse(albums));
+      res.status(200).send(albums);
     })
     .catch(error => {
       logger.error('Service error');

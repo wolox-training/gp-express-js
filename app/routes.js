@@ -1,5 +1,6 @@
 const userController = require('./controllers/user'),
   albumController = require('./controllers/album'),
+  albumValidations = require('./middlewares/albumValidations'),
   userValidations = require('./middlewares/userValidations');
 
 exports.init = app => {

@@ -20,7 +20,7 @@ exports.verifyBuy = (req, res, next) => {
 exports.verifyAuthGetAlbums = (req, res, next) => {
   const tokenString = req.headers.authorization.replace('Bearer ', '');
   const token = jwt.decode(tokenString, config.common.session.secret);
-  token.admin || req.params.user_id === token.id
+  token.admin || parseInt(req.params.user_id) === token.id
     ? next()
     : res.status(401).send("You do not have permission to view the user's albums");
 };
