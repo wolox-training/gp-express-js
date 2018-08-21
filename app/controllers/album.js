@@ -1,5 +1,7 @@
-const config = require('../../config'),
-  albumService = require('../services/album'),
+const albumService = require('../services/album'),
+  albumInteractor = require('../interactors/album'),
+  jwt = require('jsonwebtoken'),
+  config = require('../../config'),
   logger = require('../logger');
 
 exports.list = (req, res, next) => {
@@ -12,8 +14,35 @@ exports.list = (req, res, next) => {
     })
     .catch(error => {
       logger.error(error);
-      return res.status(502).send(error);
+      return res.status(500).send(error);
     });
 };
 
-exports.buy = (req, res, next) => {};
+exports.buy = (req, res, next) => {
+  logger.info('Starting buy album');
+  albumService
+    .findOneById(req.params.id)
+    .then(albumToBuy => {
+      const albumToBuyJSON = JSON.parse(albumToBuy);
+      const newBuy = {
+        id: albumToBuyJSON.id,
+        userId: req.headers.user.id,
+        title: albumToBuyJSON.title
+      };
+      albumInteractor
+        .create(newBuy)
+        .then(() => {
+          logger.info('Purchase made successfully');
+          res.status(200);
+          res.end();
+        })
+        .catch(error => {
+          logger.error('The purchase could not be made');
+          res.status(500).send(error);
+        });
+    })
+    .catch(error => {
+      logger.error('Service error');
+      res.status(500).send(error);
+    });
+};

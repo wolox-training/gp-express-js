@@ -41,11 +41,7 @@ exports.verifyAuthentication = (req, res, next) => {
     const tokenString = req.headers.authorization.replace('Bearer ', '');
     const token = jwt.decode(tokenString, config.common.session.secret);
     userInteractor.findOneByEmail(token.email).then(anUser => {
-      if (anUser && token) {
-        next();
-      } else {
-        res.status(401).send('Incorrect token');
-      }
+      anUser && token ? next() : res.status(401).send('Incorrect token');
     });
   } else {
     res.status(401).send('You are not logged in');
@@ -66,9 +62,7 @@ exports.checkAdmin = (req, res, next) => {
 
 exports.validateAdmin = (req, res, next) => {
   const validations = baseValidation(req.body.email, req.body.password);
-  if (validations.isWoloxValidEmail && validations.isPasswordValid) {
-    next();
-  } else {
-    res.status(401).send(validations.errors);
-  }
+  validations.isWoloxValidEmail && validations.isPasswordValid
+    ? next()
+    : res.status(401).send(validations.errors);
 };

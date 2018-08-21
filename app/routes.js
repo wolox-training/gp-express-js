@@ -1,5 +1,6 @@
 const userController = require('./controllers/user'),
   albumController = require('./controllers/album'),
+  albumValidations = require('./middlewares/albumValidations'),
   userValidations = require('./middlewares/userValidations');
 
 exports.init = app => {
@@ -12,5 +13,9 @@ exports.init = app => {
     userController.signUpAdmin
   );
   app.get('/albums', userValidations.verifyAuthentication, albumController.list);
-  app.post('/albums/:id', [userValidations.verifyAuthentication], albumController.buy);
+  app.post(
+    '/albums/:id',
+    [userValidations.verifyAuthentication, albumValidations.verifyBuy],
+    albumController.buy
+  );
 };
