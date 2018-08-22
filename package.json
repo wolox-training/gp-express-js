@@ -69,13 +69,16 @@
     "eslint-plugin-prettier": "^2.1.1",
     "husky": "^0.14.3",
     "istanbul": "^0.4.3",
+    "jsonwebtoken": "^8.3.0",
     "mocha": "^5.0.1",
     "mocha-lcov-reporter": "^1.2.0",
+    "nock": "^9.6.1",
     "nodemon": "^1.11.0",
     "nsp": "^3.2.1",
     "prettier": "^1.8.2",
     "prettier-eslint": "^8.2.1",
     "prompt": "^1.0.0",
+    "request-promise": "^4.2.2",
     "sequelize-cli": "^4.0.0"
   }
 }
