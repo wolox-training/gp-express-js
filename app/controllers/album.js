@@ -48,10 +48,24 @@ exports.buy = (req, res, next) => {
 exports.albumsList = (req, res, next) => {
   logger.info('Getting albums');
   albumInteractor
-    .findAllAlumsByUserId(parseInt(req.params.user_id))
+    .findAllAlumsByUserId(req.params.user_id)
     .then(albums => {
       logger.info('Get albums by userId successfully');
       res.status(200).send(albums);
+    })
+    .catch(error => {
+      logger.error('Service error');
+      res.status(500).send(error);
+    });
+};
+
+exports.photos = (req, res, next) => {
+  logger.info('Getting photos');
+  albumService
+    .findPhotosByAlbumId(req.params.id)
+    .then(photos => {
+      logger.info('Get photos successfully');
+      res.status(200).send(JSON.parse(photos));
     })
     .catch(error => {
       logger.error('Service error');

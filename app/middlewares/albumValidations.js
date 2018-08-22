@@ -3,9 +3,10 @@ const jwt = require('jsonwebtoken'),
   albumInteractor = require('../interactors/album'),
   logger = require('../logger');
 
+const decodeToken = auth => jwt.decode(auth.replace('Bearer ', ''), config.common.session.secret);
+
 exports.verifyBuy = (req, res, next) => {
-  const tokenString = req.headers.authorization.replace('Bearer ', '');
-  const token = jwt.decode(tokenString, config.common.session.secret);
+  const token = decodeToken(req.headers.authorization);
   req.headers.user = token;
   albumInteractor
     .findOneByIdAndUserId(req.params.id, token.id)
@@ -19,9 +20,21 @@ exports.verifyBuy = (req, res, next) => {
 };
 
 exports.verifyAuthGetAlbums = (req, res, next) => {
-  const tokenString = req.headers.authorization.replace('Bearer ', '');
-  const token = jwt.decode(tokenString, config.common.session.secret);
+  const token = decodeToken(req.headers.authorization);
   token.admin || parseInt(req.params.user_id) === token.id
     ? next()
     : res.status(401).send("You do not have permission to view the user's albums");
+};
+
+exports.verifyAuthGetPhotos = (req, res, next) => {
+  const token = decodeToken(req.headers.authorization);
+  albumInteractor
+    .findOneByIdAndUserId(req.params.id, token.id)
+    .then(album => {
+      album ? next() : res.status(401).send('You have not bought this album');
+    })
+    .catch(error => {
+      logger.error('Database error');
+      res.status(500).send(error);
+    });
 };

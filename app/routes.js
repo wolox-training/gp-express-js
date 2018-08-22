@@ -24,4 +24,9 @@ exports.init = app => {
     [userValidations.verifyAuthentication, albumValidations.verifyAuthGetAlbums],
     albumController.albumsList
   );
+  app.get(
+    '/users/albums/:id/photos',
+    [userValidations.verifyAuthentication, albumValidations.verifyAuthGetPhotos],
+    albumController.photos
+  );
 };

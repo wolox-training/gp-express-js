@@ -34,6 +34,14 @@ const albumTwo = {
 
 const albumId = 1;
 
+const albumPhoto = {
+  id: 2,
+  userId: 1,
+  title: 'quidem molestiae enim2'
+};
+
+const albumIdPhotos = 2;
+
 describe('album', () => {
   describe('/albums GET', () => {
     it('Should successfully GET list of albums', done => {
@@ -294,6 +302,115 @@ describe('album', () => {
       chai
         .request(server)
         .get(`/users/${user.id}/albums`)
+        .catch(error => {
+          // Expect
+          error.should.have.status(401);
+          done();
+        });
+    });
+  });
+  describe('users/albums/:id/photos GET', () => {
+    it('Should successfully GET photos of an album purchased by the same user', done => {
+      // Given
+      const photos = [
+        {
+          albumId: 2,
+          id: 1,
+          title: 'accusamus beatae ad facilis cum similique qui sunt',
+          url: 'https://via.placeholder.com/600/92c952',
+          thumbnailUrl: 'https://via.placeholder.com/150/92c952'
+        },
+        {
+          albumId: 2,
+          id: 2,
+          title: 'reprehenderit est deserunt velit ipsam',
+          url: 'https://via.placeholder.com/600/771796',
+          thumbnailUrl: 'https://via.placeholder.com/150/771796'
+        },
+        {
+          albumId: 2,
+          id: 3,
+          title: 'officia porro iure quia iusto qui ipsa ut modi',
+          url: 'https://via.placeholder.com/600/24f355',
+          thumbnailUrl: 'https://via.placeholder.com/150/24f355'
+        }
+      ];
+      nock(`${config.common.urlRequests.base}`)
+        .get(`/photos/?albumId=${albumIdPhotos}`)
+        .reply(200, photos);
+      // When
+      userInteractor.create(user).then(() => {
+        albumInteractor.create(albumPhoto).then(() => {
+          chai
+            .request(server)
+            .post('/users/sessions')
+            .send(login)
+            .then(resToken => {
+              chai
+                .request(server)
+                .get(`/users/albums/${albumIdPhotos}/photos`)
+                .set('authorization', `Bearer ${resToken.body.token}`)
+                .then(res => {
+                  // Expect
+                  res.should.have.status(200);
+                  res.body.should.be.an('array');
+                  res.body.length.should.be.eq(3);
+                  dictum.chai(res);
+                  done();
+                });
+            });
+        });
+      });
+    });
+    it('Should throw an error when sending to GET photos of an album purchased by other user', done => {
+      // Given
+      const otherUser = albumIdPhotos + 1;
+      // When
+      userInteractor.create(user).then(() => {
+        albumInteractor.create(albumPhoto).then(() => {
+          chai
+            .request(server)
+            .post('/users/sessions')
+            .send(login)
+            .then(resToken => {
+              chai
+                .request(server)
+                .get(`/users/albums/${otherUser}/photos`)
+                .set('authorization', `Bearer ${resToken.body.token}`)
+                .catch(error => {
+                  // Expect
+                  error.should.have.status(401);
+                  done();
+                });
+            });
+        });
+      });
+    });
+    it('Should throw an error when sending to GET photos of an album not purchased by the same user', done => {
+      // When
+      userInteractor.create(user).then(() => {
+        chai
+          .request(server)
+          .post('/users/sessions')
+          .send(login)
+          .then(resToken => {
+            chai
+              .request(server)
+              .get(`/users/albums/${albumIdPhotos}/photos`)
+              .set('authorization', `Bearer ${resToken.body.token}`)
+              .catch(error => {
+                // Expect
+                error.should.have.status(401);
+                done();
+              });
+          });
+      });
+    });
+    it('Should throw an error when sending to GET photos of an album purchased if the user is not logged', done => {
+      // When
+      chai
+        .request(server)
+        .get(`/users/albums/${user.id}/photos`)
         .catch(error => {
           // Expect
           error.should.have.status(401);
