@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs'),
   jwt = require('jsonwebtoken'),
   config = require('../../config'),
   logger = require('../logger'),
+  moment = require('moment'),
   userInteractor = require('../interactors/user');
 
 const createUser = (res, user, admin) => {
@@ -48,7 +49,8 @@ exports.signIn = (req, res, next) => {
           const userLoggedToken = {
             id: userLogged.id,
             email: login.email,
-            admin: userLogged.admin
+            admin: userLogged.admin,
+            lastSignInDate: moment()
           };
           const token = jwt.sign(userLoggedToken, config.common.session.secret);
           res.status(200).send({

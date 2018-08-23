@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken'),
   config = require('../../config'),
   userInteractor = require('../interactors/user'),
+  moment = require('moment'),
   error = require('../services/errors');
 
 const baseValidation = (email, password) => {
@@ -41,7 +42,13 @@ exports.verifyAuthentication = (req, res, next) => {
     const tokenString = req.headers.authorization.replace('Bearer ', '');
     const token = jwt.decode(tokenString, config.common.session.secret);
     userInteractor.findOneByEmail(token.email).then(anUser => {
-      anUser && token ? next() : res.status(401).send('Incorrect token');
+      if (anUser && token) {
+        const invalidationTime = moment(token.lastSignInDate);
+        invalidationTime.add(config.common.session.invalidationTimeInMinutes, 'minutes');
+        invalidationTime > moment() ? next() : res.status(401).send('The session expired');
+      } else {
+        res.status(401).send('Incorrect token');
+      }
     });
   } else {
     res.status(401).send('You are not logged in');

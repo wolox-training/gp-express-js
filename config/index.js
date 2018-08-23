@@ -43,7 +43,8 @@ const config = {
     },
     session: {
       header_name: 'authorizationToken',
-      secret: process.env.NODE_API_SESSION_SECRET
+      secret: process.env.NODE_API_SESSION_SECRET,
+      invalidationTimeInMinutes: 30
     },
     urlRequests: {
       base: 'https://jsonplaceholder.typicode.com',
