@@ -410,6 +410,116 @@ describe('user', () => {
         });
     });
   });
+  describe('Disable all sessions', () => {
+    it('Should successfully POST to /users/sessions/invalidate_all with a valid token', done => {
+      // When
+      userInteractor.create(user).then(() => {
+        chai
+          .request(server)
+          .post('/users/sessions')
+          .send(login)
+          .then(resToken => {
+            const token = resToken.body.token;
+            chai
+              .request(server)
+              .post('/users/sessions/invalidate_all')
+              .set('authorization', `Bearer ${token}`)
+              .send({})
+              .then(res => {
+                // Expect
+                res.should.have.status(200);
+                dictum.chai(res);
+                done();
+              });
+          });
+      });
+    });
+    it('Should successfully GET users with a token created after of disable all sessions', done => {
+      // When
+      userInteractor.create(user).then(() => {
+        chai
+          .request(server)
+          .post('/users/sessions')
+          .send(login)
+          .then(resToken1 => {
+            chai
+              .request(server)
+              .post('/users/sessions')
+              .send(login)
+              .then(resToken2 => {
+                chai
+                  .request(server)
+                  .post('/users/sessions/invalidate_all')
+                  .set('authorization', `Bearer ${resToken1.body.token}`)
+                  .send({})
+                  .then(() => {
+                    chai
+                      .request(server)
+                      .post('/users/sessions')
+                      .send(login)
+                      .then(resTokenValid => {
+                        chai
+                          .request(server)
+                          .get('/users')
+                          .set('authorization', `Bearer ${resTokenValid.body.token}`)
+                          .then(res => {
+                            // Expect
+                            res.should.have.status(200);
+                            dictum.chai(res);
+                            done();
+                          });
+                      });
+                  });
+              });
+          });
+      });
+    });
+    it('Should throw an error when sending GET users with a token that was disabled', done => {
+      // When
+      userInteractor.create(user).then(() => {
+        chai
+          .request(server)
+          .post('/users/sessions')
+          .send(login)
+          .then(resToken1 => {
+            chai
+              .request(server)
+              .post('/users/sessions')
+              .send(login)
+              .then(resToken2 => {
+                chai
+                  .request(server)
+                  .post('/users/sessions/invalidate_all')
+                  .set('authorization', `Bearer ${resToken1.body.token}`)
+                  .send({})
+                  .then(() => {
+                    chai
+                      .request(server)
+                      .get('/users')
+                      .set('authorization', `Bearer ${resToken2.body.token}`)
+                      .catch(res => {
+                        // Expect
+                        res.should.have.status(401);
+                        done();
+                      });
+                  });
+              });
+          });
+      });
+    });
+    it('Should throw an error when sending to POST to /users/sessions/invalidate_all when an user is not logged', done => {
+      // When
+      chai
+        .request(server)
+        .post('/users/sessions/invalidate_all')
+        .send({})
+        .catch(err => {
+          // Expect
+          err.should.have.status(401);
+          done();
+        });
+    });
+  });
   describe('Token Expiration', () => {
     it('Should successfully GET users with a token that has not expired', done => {
       // Given
