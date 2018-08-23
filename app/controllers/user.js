@@ -47,7 +47,8 @@ exports.signIn = (req, res, next) => {
           logger.info(`${login.email} logged in correctly`);
           const userLoggedToken = {
             id: userLogged.id,
-            email: login.email
+            email: login.email,
+            admin: userLogged.admin
           };
           const token = jwt.sign(userLoggedToken, config.common.session.secret);
           res.status(200).send({

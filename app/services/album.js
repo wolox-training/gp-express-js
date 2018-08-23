@@ -5,3 +5,5 @@ const request = require('request-promise'),
 exports.allAlums = () => request(albumList);
 
 exports.findOneById = id => request(`${albumList}/${id}`);
+
+exports.findPhotosByAlbumId = id => request(`${config.common.urlRequests.base}/photos/?albumId=${id}`);
