@@ -22,8 +22,14 @@ module.exports = {
       password: {
         type: Sequelize.STRING
       },
+      invalidationDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null
+      },
       admin: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
       createdAt: {
         allowNull: false,

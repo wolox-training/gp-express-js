@@ -2,6 +2,10 @@ const chai = require('chai'),
   userInteractor = require('../app/interactors/user'),
   dictum = require('dictum.js'),
   server = require('./../app'),
+  jwt = require('jsonwebtoken'),
+  config = require('../config'),
+  nock = require('nock'),
+  moment = require('moment'),
   should = chai.should();
 
 const user = {
@@ -11,9 +15,14 @@ const user = {
   password: 'passwordTest1'
 };
 
+const login = {
+  email: 'test@wolox.com.ar',
+  password: 'passwordTest1'
+};
+
 describe('user', () => {
   describe('/user POST', () => {
-    it('Should successfully POST given an user', done => {
+    it('wrong test token', done => {
       // When
       chai
         .request(server)
@@ -116,11 +125,6 @@ describe('user', () => {
   });
   describe('/users/sessions POST', () => {
     it('Should successfully POST login', done => {
-      // Given
-      const login = {
-        email: 'test@wolox.com.ar',
-        password: 'passwordTest1'
-      };
       // When
       chai
         .request(server)
@@ -152,11 +156,6 @@ describe('user', () => {
         userInteractor.create(otherUser);
       });
       it('Should successfully GET users', done => {
-        // Given
-        const login = {
-          email: 'test@wolox.com.ar',
-          password: 'passwordTest1'
-        };
         // When
         chai
           .request(server)
@@ -185,11 +184,6 @@ describe('user', () => {
           });
       });
       it('Should throw an error when sending to GET without token', done => {
-        // Given
-        const login = {
-          email: 'test@wolox.com.ar',
-          password: 'passwordTest1'
-        };
         // When
         chai
           .request(server)
@@ -213,11 +207,6 @@ describe('user', () => {
           });
       });
       it('Should successfully GET users, returning only the last user', done => {
-        // Given
-        const login = {
-          email: 'test@wolox.com.ar',
-          password: 'passwordTest1'
-        };
         // When
         chai
           .request(server)
@@ -261,7 +250,7 @@ describe('user', () => {
       email: 'newAdmin@wolox.com.ar',
       password: 'passwordNewAdmin1'
     };
-    const login = {
+    const loginAdmin = {
       email: 'admin@wolox.com.ar',
       password: 'passwordAdmin1'
     };
@@ -271,7 +260,7 @@ describe('user', () => {
         chai
           .request(server)
           .post('/users/sessions')
-          .send(login)
+          .send(loginAdmin)
           .then(resToken => {
             const token = resToken.body.token;
             chai
@@ -303,7 +292,7 @@ describe('user', () => {
             chai
               .request(server)
               .post('/users/sessions')
-              .send(login)
+              .send(loginAdmin)
               .then(resToken => {
                 const token = resToken.body.token;
                 chai
@@ -343,7 +332,7 @@ describe('user', () => {
             chai
               .request(server)
               .post('/users/sessions')
-              .send(login)
+              .send(loginAdmin)
               .then(resToken => {
                 const token = resToken.body.token;
                 chai
@@ -418,6 +407,64 @@ describe('user', () => {
           err.response.body.length.should.be.eq(1);
           err.response.body.should.include('Invalid Password');
           done();
+        });
+    });
+  });
+  describe('Token Expiration', () => {
+    it('Should successfully GET users with a token that has not expired', done => {
+      // Given
+      config.common.session.invalidationTimeInMinutes = 10;
+      // When
+      chai
+        .request(server)
+        .post('/users')
+        .send(user)
+        .then(() => {
+          chai
+            .request(server)
+            .post('/users/sessions')
+            .send(login)
+            .then(resToken => {
+              const token = resToken.body.token;
+              chai
+                .request(server)
+                .get('/users')
+                .set('authorization', `Bearer ${token}`)
+                .then(res => {
+                  // Expect
+                  res.should.have.status(200);
+                  res.body.users.should.be.an('array');
+                  res.body.users.length.should.be.eq(1);
+                  dictum.chai(res);
+                  done();
+                });
+            });
+        });
+    });
+    it('Should throw an error when sending to GET users with a token that has expired', done => {
+      // Given
+      config.common.session.invalidationTimeInMinutes = 0;
+      // When
+      chai
+        .request(server)
+        .post('/users')
+        .send(user)
+        .then(() => {
+          chai
+            .request(server)
+            .post('/users/sessions')
+            .send(login)
+            .then(resToken => {
+              chai
+                .request(server)
+                .get('/users')
+                .set('authorization', `Bearer ${resToken.body.token}`)
+                .catch(res => {
+                  // Expect
+                  res.should.have.status(401);
+                  done();
+                });
+            });
         });
     });
   });
