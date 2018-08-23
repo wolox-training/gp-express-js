@@ -43,9 +43,13 @@ exports.verifyAuthentication = (req, res, next) => {
     const token = jwt.decode(tokenString, config.common.session.secret);
     userInteractor.findOneByEmail(token.email).then(anUser => {
       if (anUser && token) {
+        req.headers.user = anUser;
         const invalidationTime = moment(token.lastSignInDate);
         invalidationTime.add(config.common.session.invalidationTimeInMinutes, 'minutes');
-        invalidationTime > moment() ? next() : res.status(401).send('The session expired');
+        invalidationTime > moment() &&
+        (!anUser.invalidationDate || moment(token.lastSignInDate) > anUser.invalidationDate)
+          ? next()
+          : res.status(401).send('The session expired');
       } else {
         res.status(401).send('Incorrect token');
       }

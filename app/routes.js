@@ -18,7 +18,6 @@ exports.init = app => {
     [userValidations.verifyAuthentication, albumValidations.verifyBuy],
     albumController.buy
   );
-
   app.get(
     '/users/:user_id/albums',
     [userValidations.verifyAuthentication, albumValidations.verifyAuthGetAlbums],
@@ -28,5 +27,10 @@ exports.init = app => {
     '/users/albums/:id/photos',
     [userValidations.verifyAuthentication, albumValidations.verifyAuthGetPhotos],
     albumController.photos
+  );
+  app.post(
+    '/users/sessions/invalidate_all',
+    userValidations.verifyAuthentication,
+    userController.invalidateSessions
   );
 };

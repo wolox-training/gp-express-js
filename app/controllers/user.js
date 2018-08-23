@@ -134,3 +134,21 @@ exports.signUpAdmin = (req, res, next) => {
       res.status(500).send(err);
     });
 };
+
+exports.invalidateSessions = (req, res, next) => {
+  logger.info(`Starting invalidate sessions`);
+  const invalidateSesionUser = {
+    invalidationDate: moment()
+  };
+  userInteractor
+    .update(req.headers.user, invalidateSesionUser)
+    .then(() => {
+      logger.info(`All sessions have been invalidated successfully`);
+      res.status(200);
+      res.end();
+    })
+    .catch(err => {
+      logger.error('Database error');
+      res.status(500).send(err);
+    });
+};
